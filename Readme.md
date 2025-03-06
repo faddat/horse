@@ -1,8 +1,11 @@
 # Horse
 
-Horse is a development network for the horse-narwhal-unicron series of chains.
+Horse is a development network for the horse-narwhal-unicorn series of chains.
 
-## Note
+![image](https://github.com/user-attachments/assets/d438af8b-5e69-4100-a696-940aa8df4773)
+
+## Note!
+
 
 Horse will be a live-fire devnet.   It will have "real" bridgeable coins and a full validator set, but it is essential to note before proceeding that this thing absolutely may explode for various reasons.
 

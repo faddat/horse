@@ -1,22 +1,23 @@
-version: 1
 validation: sovereign
-accounts: 
-- name: alice
+version: 1
+chain_id: "horse-1"
+accounts:
+- name: smoothiepool
   coins:
-  - 20000token
-  - 200000000stake
-- name: bob
+  - 400000000000horse
+- name: faucet
   coins:
-  - 10000token
-  - 100000000stake
+  - 100000000horse
+faucet:
+  name: faucet
+  coins:
+  - 100000horse
 client:
+  source_url: "https://github.com/uwu-shepards/horse"
+  typescript:
+    path: ts-client
   openapi:
     path: docs/static/openapi.yml
-faucet:
-  name: bob
-  coins:
-  - 5token
-  - 100000stake
 validators:
-- name: alice
-  bonded: 100000000stake
+- name: smoothiepool
+  bonded: 200000000000horse

@@ -1,4 +1,4 @@
-module github.com/MANTRA-Chain/mantrachain
+module github.com/uwu-shepards/horse
 
 go 1.23
 

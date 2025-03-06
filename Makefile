@@ -11,7 +11,7 @@ help:
 	@echo "Usage:"
 	@echo "    make [command]"
 	@echo ""
-	@echo "  make build                 Build mantrachaind binary"
+	@echo "  make build                 Build horsed binary"
 	@echo "  make lint                  Show available lint commands"
 	@echo "  make test                  Show available test commands"
 	@echo "  make proto                 Show available proto commands"
@@ -70,9 +70,9 @@ ifeq ($(LEDGER_ENABLED),true)
   endif
 endif
 
-ifeq (cleveldb,$(findstring cleveldb,$(MANTRACHAIN_BUILD_OPTIONS)))
+ifeq (cleveldb,$(findstring cleveldb,$(HORSE_BUILD_OPTIONS)))
   build_tags += gcc
-else ifeq (rocksdb,$(findstring rocksdb,$(MANTRACHAIN_BUILD_OPTIONS)))
+else ifeq (rocksdb,$(findstring rocksdb,$(HORSE_BUILD_OPTIONS)))
   build_tags += gcc
 endif
 build_tags += $(BUILD_TAGS)
@@ -85,19 +85,19 @@ build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
 # process linker flags
 
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=mantrachain \
-	-X github.com/cosmos/cosmos-sdk/version.AppName=mantrachaind \
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=horse \
+	-X github.com/cosmos/cosmos-sdk/version.AppName=horsed \
 	-X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 	-X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 	-X github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep) \
 	-X github.com/cometbft/cometbft/version.TMCoreSemVer=$(CMT_VERSION)
 
-ifeq (cleveldb,$(findstring cleveldb,$(MANTRACHAIN_BUILD_OPTIONS)))
+ifeq (cleveldb,$(findstring cleveldb,$(HORSE_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
-else ifeq (rocksdb,$(findstring rocksdb,$(MANTRACHAIN_BUILD_OPTIONS)))
+else ifeq (rocksdb,$(findstring rocksdb,$(HORSE_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=rocksdb
 endif
-ifeq (,$(findstring nostrip,$(MANTRACHAIN_BUILD_OPTIONS)))
+ifeq (,$(findstring nostrip,$(HORSE_BUILD_OPTIONS)))
   ldflags += -w -s
 endif
 ifeq ($(LINK_STATICALLY),true)
@@ -108,7 +108,7 @@ ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
-ifeq (,$(findstring nostrip,$(MANTRACHAIN_BUILD_OPTIONS)))
+ifeq (,$(findstring nostrip,$(HORSE_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath
 endif
 
@@ -124,10 +124,10 @@ build-arm:
 build-linux:
 	GOOS=linux GOARCH=$(if $(findstring aarch64,$(shell uname -m)) || $(findstring arm64,$(shell uname -m)),arm64,amd64) $(MAKE) build
 build-image:
-	docker build -f Dockerfile -t mantra-chain/mantrachain:local .
+	docker build -f Dockerfile -t uwu-shepards/horse:local .
 
 $(BUILD_TARGETS): go.sum $(BUILDDIR)/
-	go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) $(GO_MODULE)/cmd/mantrachaind
+	go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) $(GO_MODULE)/cmd/horsed
 $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
 
@@ -156,8 +156,8 @@ GORELEASER_IMAGE := ghcr.io/goreleaser/goreleaser-cross:v$(GO_VERSION)
 endif
 GORELEASER_PLATFORM ?= linux/amd64
 COSMWASM_VERSION := $(shell go list -m github.com/CosmWasm/wasmvm/v2 | sed 's/.* //')
-REPO_OWNER ?= MANTRA-Chain
-REPO_NAME ?= mantrachain
+REPO_OWNER ?= uwu-shepards
+REPO_NAME ?= horse
 
 # Check if GITHUB_TOKEN is defined
 ifndef GITHUB_TOKEN
@@ -173,8 +173,8 @@ release:
 		-e CMT_VERSION=$(CMT_VERSION) \
 		-e REPO_OWNER=$(REPO_OWNER) \
 		-e REPO_NAME=$(REPO_NAME) \
-		-v `pwd`:/go/src/mantrachaind \
-		-w /go/src/mantrachaind \
+		-v `pwd`:/go/src/horsed \
+		-w /go/src/horsed \
 		--platform=$(GORELEASER_PLATFORM) \
 		$(GORELEASER_IMAGE) \
 		release $(if $(GORELEASER_SKIP),--skip=$(GORELEASER_SKIP)) $(if $(GORELEASER_CONFIG),--config=$(GORELEASER_CONFIG)) \
@@ -193,8 +193,8 @@ goreleaser-build-local:
 		-e CMT_VERSION=$(CMT_VERSION) \
 		-e REPO_OWNER=$(REPO_OWNER) \
 		-e REPO_NAME=$(REPO_NAME) \
-		-v `pwd`:/go/src/mantrachaind \
-		-w /go/src/mantrachaind \
+		-v `pwd`:/go/src/horsed \
+		-w /go/src/horsed \
 		--platform=$(GORELEASER_PLATFORM) \
 		$(GORELEASER_IMAGE) \
 		build $(if $(GORELEASER_IDS),$(shell echo $(GORELEASER_IDS) | tr ',' ' ' | sed 's/[^ ]*/--id=&/g')) \
@@ -221,12 +221,12 @@ build-and-run-single-node: build
 	@echo "Building and running a single node for testing..."
 	@mkdir -p .mantrasinglenodetest
 	@if [ ! -f .mantrasinglenodetest/config.toml ]; then \
-		./build/mantrachaind init single-node-test --chain-id test-chain --home .mantrasinglenodetest; \
-		./build/mantrachaind keys add validator --keyring-backend test --home .mantrasinglenodetest; \
-		./build/mantrachaind genesis add-genesis-account $$(./build/mantrachaind keys show validator -a --keyring-backend test --home .mantrasinglenodetest) 100000000stake --home .mantrasinglenodetest; \
-		./build/mantrachaind genesis gentx validator 100000000stake --chain-id test-chain --keyring-backend test --home .mantrasinglenodetest; \
-		./build/mantrachaind genesis collect-gentxs --home .mantrasinglenodetest; \
+		./build/horsed init single-node-test --chain-id test-chain --home .mantrasinglenodetest; \
+		./build/horsed keys add validator --keyring-backend test --home .mantrasinglenodetest; \
+		./build/horsed genesis add-genesis-account $$(./build/horsed keys show validator -a --keyring-backend test --home .mantrasinglenodetest) 100000000stake --home .mantrasinglenodetest; \
+		./build/horsed genesis gentx validator 100000000stake --chain-id test-chain --keyring-backend test --home .mantrasinglenodetest; \
+		./build/horsed genesis collect-gentxs --home .mantrasinglenodetest; \
 	fi
-	./build/mantrachaind start --home .mantrasinglenodetest --minimum-gas-prices 0stake
+	./build/horsed start --home .mantrasinglenodetest --minimum-gas-prices 0stake
 
 .PHONY: build-and-run-single-node

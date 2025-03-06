@@ -23,7 +23,7 @@ RUN apk add --no-cache \
     git
 
 # Download go dependencies
-WORKDIR /mantrachain
+WORKDIR /horse
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
@@ -40,7 +40,7 @@ RUN ARCH=$(uname -m) && WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm/v
 # Copy the remaining files
 COPY . .
 
-# Build mantrachaind binary
+# Build horsed binary
 # build tag info: https://github.com/cosmos/wasmd/blob/master/README.md#supported-systems
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
@@ -52,16 +52,16 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM ${FINAL_IMAGE}
 
-COPY --from=builder /mantrachain/build/mantrachaind /bin/mantrachaind
+COPY --from=builder /horse/build/horsed /bin/horsed
 
-ENV HOME /mantrachain
+ENV HOME /horse
 WORKDIR $HOME
 
 EXPOSE 26656
 EXPOSE 26657
 EXPOSE 1317
-# Note: uncomment the line below if you need pprof in local mantrachain
+# Note: uncomment the line below if you need pprof in local horse
 # We disable it by default in out main Dockerfile for security reasons
 # EXPOSE 6060
 
-ENTRYPOINT ["mantrachaind"]
+ENTRYPOINT ["horsed"]

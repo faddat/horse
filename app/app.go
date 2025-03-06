@@ -34,13 +34,10 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	_ "github.com/MANTRA-Chain/mantrachain/app/params"
-	queries "github.com/MANTRA-Chain/mantrachain/app/queries"
-	_ "github.com/MANTRA-Chain/mantrachain/client/docs/statik"
+	_ "github.com/uwu-shepards/horse/app/params"
+	queries "github.com/uwu-shepards/horse/app/queries"
+	_ "github.com/uwu-shepards/horse/client/docs/statik"
 
-	"github.com/MANTRA-Chain/mantrachain/x/tokenfactory"
-	tokenfactorykeeper "github.com/MANTRA-Chain/mantrachain/x/tokenfactory/keeper"
-	tokenfactorytypes "github.com/MANTRA-Chain/mantrachain/x/tokenfactory/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
@@ -145,6 +142,9 @@ import (
 	feemarketkeeper "github.com/skip-mev/feemarket/x/feemarket/keeper"
 	feemarkettypes "github.com/skip-mev/feemarket/x/feemarket/types"
 	"github.com/spf13/cast"
+	"github.com/uwu-shepards/horse/x/tokenfactory"
+	tokenfactorykeeper "github.com/uwu-shepards/horse/x/tokenfactory/keeper"
+	tokenfactorytypes "github.com/uwu-shepards/horse/x/tokenfactory/types"
 )
 
 const appName = "App"
@@ -157,14 +157,14 @@ const (
 
 // We pull these out so we can set them with LDFLAGS in the Makefile
 var (
-	NodeDir = ".mantrachain"
+	NodeDir = ".horse"
 )
 
 // These constants are derived from the above variables.
 // These are the ones we will want to use in the code, based on
 // any overrides above
 var (
-	// DefaultNodeHome default home directories for mantrachaind
+	// DefaultNodeHome default home directories for horsed
 	DefaultNodeHome = os.ExpandEnv("$HOME/") + NodeDir
 )
 
@@ -914,7 +914,7 @@ func New(
 
 	// must be before Loading version
 	// requires the snapshot store to be created and registered as a BaseAppOption
-	// see cmd/mantrachaind/root.go: 206 - 214 approx
+	// see cmd/horsed/root.go: 206 - 214 approx
 	if manager := app.SnapshotManager(); manager != nil {
 		err := manager.RegisterExtensions(
 			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmKeeper),

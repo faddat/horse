@@ -27,7 +27,7 @@ import (
 
 var (
 	image = ibc.DockerImage{
-		Repository: "mantra-chain/mantrachain",
+		Repository: "uwu-shepards/horse",
 		Version:    "local",
 		UidGid:     "1025:1025",
 	}
@@ -91,8 +91,8 @@ var (
 			Name:           "slinky",
 			Denom:          denom,
 			ChainID:        "chain-id-0",
-			Bin:            "mantrachaind",
-			Bech32Prefix:   "mantra",
+			Bin:            "horsed",
+			Bech32Prefix:   "horse",
 			CoinType:       "118",
 			GasAdjustment:  gasAdjustment,
 			GasPrices:      fmt.Sprintf("0%s", denom),

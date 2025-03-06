@@ -9,10 +9,6 @@ import (
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	modulev1 "github.com/MANTRA-Chain/mantrachain/api/osmosis/tokenfactory/module/v1"
-	"github.com/MANTRA-Chain/mantrachain/x/tokenfactory/client/cli"
-	"github.com/MANTRA-Chain/mantrachain/x/tokenfactory/keeper"
-	"github.com/MANTRA-Chain/mantrachain/x/tokenfactory/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -24,6 +20,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+	modulev1 "github.com/uwu-shepards/horse/api/osmosis/tokenfactory/module/v1"
+	"github.com/uwu-shepards/horse/x/tokenfactory/client/cli"
+	"github.com/uwu-shepards/horse/x/tokenfactory/keeper"
+	"github.com/uwu-shepards/horse/x/tokenfactory/types"
 )
 
 var (

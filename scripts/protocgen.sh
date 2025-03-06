@@ -19,7 +19,7 @@ done
 #
 # Note: Proto files are suffixed with the current binary version.
 echo "Copying proto files to the right places"
-cp -r github.com/MANTRA-Chain/mantrachain/x/* ../x
+cp -r github.com/uwu-shepards/horse/x/* ../x
 
 # cleanup
 echo "Cleaning up"

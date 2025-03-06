@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Architecture Decision Records (ADR)
 
-This is a location to record all high-level architecture decisions in mantrachain.
+This is a location to record all high-level architecture decisions in horse.
 
 An Architectural Decision (**AD**) is a software design choice that addresses a functional or non-functional requirement that is architecturally significant.
 An Architecturally Significant Requirement (**ASR**) is a requirement that has a measurable effect on a software system’s architecture and quality.
@@ -48,9 +48,3 @@ When writing ADRs, follow the same best practices for writing RFCs. When writing
 
 ### Draft
 
-- [ADR 002: Moving of guard permission checks to Message level](./adr-002-guard-checks-at-msg-level.md)
-- [ADR 003: Using of official Cosmos-SDK and IBC-Go](./adr-003-use-official-cosmos-modules.md)
-- [ADR 004: Allow users to create permissionless coins](./adr-004-create-permissionless-coins.md)
-- [ADR 005: Default coinfactory coins to be permissionless](./adr-005-default-permissionless-coins.md)
-- [ADR 006: Standardise coinfactory protobuf](./adr-006-standardise-coinfactory.md)
-- [ADR 007: KVStore key prefix](./adr-007-kvstore-key-prefix.md)

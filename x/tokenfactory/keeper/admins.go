@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	"github.com/MANTRA-Chain/mantrachain/x/tokenfactory/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
+	"github.com/uwu-shepards/horse/x/tokenfactory/types"
 )
 
 // GetAuthorityMetadata returns the authority metadata for a specific denom

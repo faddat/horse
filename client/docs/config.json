@@ -26,7 +26,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/mantrachain/tax/v1/query.swagger.json",
+      "url": "./tmp-swagger-gen/horse/tax/v1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "TaxParams"
