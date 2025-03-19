@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/MANTRA-Chain/mantrachain/x/tokenfactory/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
+	"github.com/uwu-shepards/horse/x/tokenfactory/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

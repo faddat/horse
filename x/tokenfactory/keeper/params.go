@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	"github.com/MANTRA-Chain/mantrachain/x/tokenfactory/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/uwu-shepards/horse/x/tokenfactory/types"
 )
 
 // GetParams returns the total set params.

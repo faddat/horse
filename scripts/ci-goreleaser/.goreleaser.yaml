@@ -1,11 +1,11 @@
 ---
 version: 2
-project_name: mantrachaind
+project_name: horsed
 
 builds:
-  - id: mantrachaind-darwin-amd64
+  - id: horsed-darwin-amd64
     main: ./scripts/ci-goreleaser/goreleaser.go
-    binary: mantrachaind
+    binary: horsed
     goos:
       - darwin
     goarch:
@@ -14,9 +14,9 @@ builds:
       post:
         - ./scripts/ci-goreleaser/.goreleaser_hook.sh {{ .Arch }} {{ .Os }} {{ .ProjectName }}
 
-  - id: mantrachaind-darwin-arm64
+  - id: horsed-darwin-arm64
     main: ./scripts/ci-goreleaser/goreleaser.go
-    binary: mantrachaind
+    binary: horsed
     goos:
       - darwin
     goarch:
@@ -25,9 +25,9 @@ builds:
       post:
         - ./scripts/ci-goreleaser/.goreleaser_hook.sh {{ .Arch }} {{ .Os }} {{ .ProjectName }}
 
-  - id: mantrachaind-linux-amd64
+  - id: horsed-linux-amd64
     main: ./scripts/ci-goreleaser/goreleaser.go
-    binary: mantrachaind
+    binary: horsed
     goos:
       - linux
     goarch:
@@ -36,9 +36,9 @@ builds:
       post:
         - ./scripts/ci-goreleaser/.goreleaser_hook.sh {{ .Arch }} {{ .Os }} {{ .ProjectName }}
 
-  - id: mantrachaind-linux-arm64
+  - id: horsed-linux-arm64
     main: ./scripts/ci-goreleaser/goreleaser.go
-    binary: mantrachaind
+    binary: horsed
     goos:
       - linux
     goarch:
@@ -50,20 +50,20 @@ builds:
 archives:
   - id: zipped
     builds:
-      - mantrachaind-linux-amd64
-      - mantrachaind-linux-arm64
-      - mantrachaind-darwin-amd64
-      - mantrachaind-darwin-arm64
+      - horsed-linux-amd64
+      - horsed-linux-arm64
+      - horsed-darwin-amd64
+      - horsed-darwin-arm64
     name_template: "{{.ProjectName}}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     format: tar.gz
     files:
       - none*
   - id: binaries
     builds:
-      - mantrachaind-linux-amd64
-      - mantrachaind-linux-arm64
-      - mantrachaind-darwin-amd64
-      - mantrachaind-darwin-arm64
+      - horsed-linux-amd64
+      - horsed-linux-arm64
+      - horsed-darwin-amd64
+      - horsed-darwin-arm64
     name_template: "{{.ProjectName}}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     format: binary
     files:
@@ -96,7 +96,7 @@ release:
 
     ````bash
     git clone https://github.com/{{ .Env.REPO_OWNER }}/{{ .Env.REPO_NAME }}
-    cd mantrachain && git checkout v{{ .Version }}
+    cd horse && git checkout v{{ .Version }}
     make install
     ````
 

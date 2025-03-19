@@ -1,4 +1,4 @@
-module github.com/MANTRA-Chain/mantrachain/tests/connect
+module github.com/uwu-shepards/horse/tests/connect
 
 go 1.23
 

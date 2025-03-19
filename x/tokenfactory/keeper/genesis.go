@@ -1,8 +1,8 @@
 package keeper
 
 import (
-	"github.com/MANTRA-Chain/mantrachain/x/tokenfactory/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/uwu-shepards/horse/x/tokenfactory/types"
 )
 
 // InitGenesis initializes the tokenfactory module's state from a provided genesis
