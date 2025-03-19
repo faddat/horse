@@ -35,8 +35,6 @@ import (
 	_ "github.com/MANTRA-Chain/mantrachain/app/params"
 	_ "github.com/MANTRA-Chain/mantrachain/client/docs/statik"
 
-	tokenfactorykeeper "github.com/MANTRA-Chain/mantrachain/x/tokenfactory/keeper"
-	tokenfactorytypes "github.com/MANTRA-Chain/mantrachain/x/tokenfactory/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -133,8 +131,7 @@ import (
 	marketmap "github.com/skip-mev/connect/v2/x/marketmap"
 	marketmapkeeper "github.com/skip-mev/connect/v2/x/marketmap/keeper"
 	marketmaptypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	oracle "github.com/skip-mev/connect/v2/x/oracle"
-	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
+
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 	"github.com/skip-mev/feemarket/x/feemarket"
 	feemarketkeeper "github.com/skip-mev/feemarket/x/feemarket/keeper"
@@ -173,10 +170,9 @@ var maccPerms = map[string][]string{
 	govtypes.ModuleName:            {authtypes.Burner},
 	nft.ModuleName:                 nil,
 	// non sdk modules
-	ibctransfertypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
-	ibcfeetypes.ModuleName:       nil,
-	ratelimittypes.ModuleName:    nil,
-	tokenfactorytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+	ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+	ibcfeetypes.ModuleName:      nil,
+	ratelimittypes.ModuleName:   nil,
 
 	feemarkettypes.ModuleName:       {authtypes.Burner},
 	feemarkettypes.FeeCollectorName: {authtypes.Burner},
@@ -225,7 +221,6 @@ type App struct {
 	FeeMarketKeeper *feemarketkeeper.Keeper
 
 	// Connect
-	OracleKeeper    *oraclekeeper.Keeper
 	MarketMapKeeper *marketmapkeeper.Keeper
 
 	// IBC
@@ -244,7 +239,6 @@ type App struct {
 	ScopedFeeabsKeeper   capabilitykeeper.ScopedKeeper
 
 	// MANTRAChain keepers
-	TokenFactoryKeeper tokenfactorykeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -317,7 +311,6 @@ func New(
 		capabilitytypes.StoreKey, ibcexported.StoreKey, ibctransfertypes.StoreKey, ibcfeetypes.StoreKey,
 		wasmtypes.StoreKey,
 		ratelimittypes.StoreKey,
-		tokenfactorytypes.StoreKey,
 		ibchookstypes.StoreKey,
 		feemarkettypes.StoreKey, oracletypes.StoreKey, marketmaptypes.StoreKey,
 	)
@@ -548,13 +541,6 @@ func New(
 		keys[ibchookstypes.StoreKey],
 	)
 
-	oracleKeeper := oraclekeeper.NewKeeper(runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
-		appCodec,
-		app.MarketMapKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName))
-	app.OracleKeeper = &oracleKeeper
-	oracleModule := oracle.NewAppModule(appCodec, *app.OracleKeeper)
-
 	ics20WasmHooks := ibchooks.NewWasmHooks(&app.IBCHooksKeeper, nil, sdk.GetConfig().GetBech32AccountAddrPrefix())
 	hooksICS4Wrapper := ibchooks.NewICS4Middleware(app.IBCKeeper.ChannelKeeper, ics20WasmHooks)
 
@@ -675,7 +661,6 @@ func New(
 		ratelimit.NewAppModule(appCodec, app.RateLimitKeeper),
 		// connect
 		marketmapModule,
-		oracleModule,
 
 		// sdk
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, nil), // always be last to make sure that it checks for all invariants and not only part of them,
@@ -727,7 +712,6 @@ func New(
 		ibchookstypes.ModuleName,
 		ratelimittypes.ModuleName,
 		wasmtypes.ModuleName,
-		tokenfactorytypes.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -746,7 +730,6 @@ func New(
 		ibchookstypes.ModuleName,
 		ratelimittypes.ModuleName,
 		wasmtypes.ModuleName,
-		tokenfactorytypes.ModuleName,
 		oracletypes.ModuleName,
 		marketmaptypes.ModuleName,
 	)
@@ -790,7 +773,6 @@ func New(
 		// wasm after ibc transfer
 
 		wasmtypes.ModuleName,
-		tokenfactorytypes.ModuleName,
 
 		feemarkettypes.ModuleName,
 		// market map genesis must be called AFTER all consuming modules (i.e. x/oracle, etc.)
@@ -862,16 +844,6 @@ func New(
 
 	app.setAnteHandler(txConfig)
 	app.setPostHandler()
-
-	// oracle initialization
-	client, metrics, err := app.initializeOracle(appOpts)
-	if err != nil {
-		panic(fmt.Errorf("failed to initialize oracle client and metrics: %w", err))
-	}
-
-	app.MarketMapKeeper.SetHooks(app.OracleKeeper.Hooks())
-
-	app.initializeABCIExtensions(client, metrics)
 
 	// At startup, after all modules have been registered, check that all proto
 	// annotations are correct.
