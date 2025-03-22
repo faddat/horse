@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"sort"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
@@ -31,15 +30,12 @@ import (
 	"cosmossdk.io/x/upgrade"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	_ "github.com/uwu-shepards/horse/app/params"
-	queries "github.com/uwu-shepards/horse/app/queries"
 	_ "github.com/uwu-shepards/horse/client/docs/statik"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -135,16 +131,12 @@ import (
 	marketmap "github.com/skip-mev/connect/v2/x/marketmap"
 	marketmapkeeper "github.com/skip-mev/connect/v2/x/marketmap/keeper"
 	marketmaptypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	oracle "github.com/skip-mev/connect/v2/x/oracle"
-	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
+
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 	"github.com/skip-mev/feemarket/x/feemarket"
 	feemarketkeeper "github.com/skip-mev/feemarket/x/feemarket/keeper"
 	feemarkettypes "github.com/skip-mev/feemarket/x/feemarket/types"
 	"github.com/spf13/cast"
-	"github.com/uwu-shepards/horse/x/tokenfactory"
-	tokenfactorykeeper "github.com/uwu-shepards/horse/x/tokenfactory/keeper"
-	tokenfactorytypes "github.com/uwu-shepards/horse/x/tokenfactory/types"
 )
 
 const appName = "App"
@@ -178,11 +170,9 @@ var maccPerms = map[string][]string{
 	govtypes.ModuleName:            {authtypes.Burner},
 	nft.ModuleName:                 nil,
 	// non sdk modules
-	ibctransfertypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
-	ibcfeetypes.ModuleName:       nil,
-	ratelimittypes.ModuleName:    nil,
-	wasmtypes.ModuleName:         {authtypes.Burner},
-	tokenfactorytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+	ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+	ibcfeetypes.ModuleName:      nil,
+	ratelimittypes.ModuleName:   nil,
 
 	feemarkettypes.ModuleName:       {authtypes.Burner},
 	feemarkettypes.FeeCollectorName: {authtypes.Burner},
@@ -231,14 +221,12 @@ type App struct {
 	FeeMarketKeeper *feemarketkeeper.Keeper
 
 	// Connect
-	OracleKeeper    *oraclekeeper.Keeper
 	MarketMapKeeper *marketmapkeeper.Keeper
 
 	// IBC
 	IBCKeeper       *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	IBCFeeKeeper    ibcfeekeeper.Keeper
 	TransferKeeper  ibctransferkeeper.Keeper
-	WasmKeeper      wasmkeeper.Keeper
 	RateLimitKeeper ratelimitkeeper.Keeper
 
 	IBCHooksKeeper ibchookskeeper.Keeper
@@ -251,7 +239,6 @@ type App struct {
 	ScopedFeeabsKeeper   capabilitykeeper.ScopedKeeper
 
 	// MANTRAChain keepers
-	TokenFactoryKeeper tokenfactorykeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -324,7 +311,6 @@ func New(
 		capabilitytypes.StoreKey, ibcexported.StoreKey, ibctransfertypes.StoreKey, ibcfeetypes.StoreKey,
 		wasmtypes.StoreKey,
 		ratelimittypes.StoreKey,
-		tokenfactorytypes.StoreKey,
 		ibchookstypes.StoreKey,
 		feemarkettypes.StoreKey, oracletypes.StoreKey, marketmaptypes.StoreKey,
 	)
@@ -467,20 +453,6 @@ func New(
 		app.AccountKeeper,
 	)
 
-	groupConfig := group.DefaultConfig()
-	/*
-		Example of setting group params:
-		groupConfig.MaxMetadataLen = 1000
-	*/
-	app.GroupKeeper = groupkeeper.NewKeeper(
-		keys[group.StoreKey],
-		// runtime.NewKVStoreService(keys[group.StoreKey]),
-		appCodec,
-		app.MsgServiceRouter(),
-		app.AccountKeeper,
-		groupConfig,
-	)
-
 	// get skipUpgradeHeights from the app options
 	skipUpgradeHeights := map[int64]bool{}
 	for _, h := range cast.ToIntSlice(appOpts.Get(server.FlagUnsafeSkipUpgrades)) {
@@ -512,16 +484,6 @@ func New(
 		sortedKnownModules = append(sortedKnownModules, moduleName)
 	}
 	sort.Strings(sortedKnownModules)
-
-	app.TokenFactoryKeeper = tokenfactorykeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(keys[tokenfactorytypes.StoreKey]),
-		sortedKnownModules,
-		app.AccountKeeper,
-		&app.BankKeeper,
-		&app.WasmKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
 
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
@@ -564,13 +526,6 @@ func New(
 	app.IBCHooksKeeper = ibchookskeeper.NewKeeper(
 		keys[ibchookstypes.StoreKey],
 	)
-
-	oracleKeeper := oraclekeeper.NewKeeper(runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
-		appCodec,
-		app.MarketMapKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName))
-	app.OracleKeeper = &oracleKeeper
-	oracleModule := oracle.NewAppModule(appCodec, *app.OracleKeeper)
 
 	ics20WasmHooks := ibchooks.NewWasmHooks(&app.IBCHooksKeeper, nil, sdk.GetConfig().GetBech32AccountAddrPrefix())
 	hooksICS4Wrapper := ibchooks.NewICS4Middleware(app.IBCKeeper.ChannelKeeper, ics20WasmHooks)
@@ -633,52 +588,10 @@ func New(
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 	transferStack = ratelimit.NewIBCMiddleware(app.RateLimitKeeper, transferStack)
 
-	// Create fee enabled wasm ibc Stack
-	var wasmStack porttypes.IBCModule
-	wasmStack = wasm.NewIBCHandler(&app.WasmKeeper, app.IBCKeeper.ChannelKeeper, app.IBCFeeKeeper)
-	wasmStack = ibcfee.NewIBCMiddleware(wasmStack, app.IBCFeeKeeper)
-
 	// Create static IBC router, add app routes, then set and seal it
 	ibcRouter := porttypes.NewRouter().
-		AddRoute(ibctransfertypes.ModuleName, transferStack).
-		AddRoute(wasmtypes.ModuleName, wasmStack)
+		AddRoute(ibctransfertypes.ModuleName, transferStack)
 	app.IBCKeeper.SetRouter(ibcRouter)
-
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
-	if err != nil {
-		panic(fmt.Sprintf("error while reading wasm config: %s", err))
-	}
-
-	wasmDir := filepath.Join(homePath, "wasm")
-
-	// Register custom plugins for the wasm module by appending them to the existing options
-	wasmOpts = append(wasmOpts, queries.RegisterCustomPlugins(
-		*app.GRPCQueryRouter(),
-		app.AppCodec(),
-	)...)
-
-	// The last arguments can contain custom message handlers, and custom query handlers,
-	// if we want to allow any custom callbacks
-	app.WasmKeeper = wasmkeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.StakingKeeper,
-		distrkeeper.NewQuerier(app.DistrKeeper),
-		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
-		scopedWasmKeeper,
-		app.TransferKeeper,
-		app.MsgServiceRouter(),
-		app.GRPCQueryRouter(),
-		wasmDir,
-		wasmConfig,
-		AllCapabilities(),
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		wasmOpts...,
-	)
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
 	// we prefer to be more strict in what arguments the modules expect.
@@ -726,7 +639,6 @@ func New(
 		circuit.NewAppModule(appCodec, app.CircuitKeeper),
 		// non sdk modules
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
-		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), nil),
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
@@ -735,11 +647,9 @@ func New(
 		ratelimit.NewAppModule(appCodec, app.RateLimitKeeper),
 		// connect
 		marketmapModule,
-		oracleModule,
 
 		// sdk
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, nil), // always be last to make sure that it checks for all invariants and not only part of them,
-		tokenfactory.NewAppModule(appCodec, app.TokenFactoryKeeper),
 		feemarket.NewAppModule(appCodec, *app.FeeMarketKeeper),
 	)
 
@@ -788,7 +698,6 @@ func New(
 		ibchookstypes.ModuleName,
 		ratelimittypes.ModuleName,
 		wasmtypes.ModuleName,
-		tokenfactorytypes.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -807,7 +716,6 @@ func New(
 		ibchookstypes.ModuleName,
 		ratelimittypes.ModuleName,
 		wasmtypes.ModuleName,
-		tokenfactorytypes.ModuleName,
 		oracletypes.ModuleName,
 		marketmaptypes.ModuleName,
 	)
@@ -851,7 +759,6 @@ func New(
 		// wasm after ibc transfer
 
 		wasmtypes.ModuleName,
-		tokenfactorytypes.ModuleName,
 
 		feemarkettypes.ModuleName,
 		// market map genesis must be called AFTER all consuming modules (i.e. x/oracle, etc.)
@@ -914,33 +821,14 @@ func New(
 
 	// must be before Loading version
 	// requires the snapshot store to be created and registered as a BaseAppOption
-	// see cmd/horsed/root.go: 206 - 214 approx
-	if manager := app.SnapshotManager(); manager != nil {
-		err := manager.RegisterExtensions(
-			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmKeeper),
-		)
-		if err != nil {
-			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
-		}
-	}
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
 	app.ScopedWasmKeeper = scopedWasmKeeper
 	app.ScopedIBCFeeKeeper = scopedIBCFeeKeeper
 
-	app.setAnteHandler(txConfig, wasmConfig, keys[wasmtypes.StoreKey])
+	app.setAnteHandler(txConfig)
 	app.setPostHandler()
-
-	// oracle initialization
-	client, metrics, err := app.initializeOracle(appOpts)
-	if err != nil {
-		panic(fmt.Errorf("failed to initialize oracle client and metrics: %w", err))
-	}
-
-	app.MarketMapKeeper.SetHooks(app.OracleKeeper.Hooks())
-
-	app.initializeABCIExtensions(client, metrics)
 
 	// At startup, after all modules have been registered, check that all proto
 	// annotations are correct.
@@ -959,12 +847,6 @@ func New(
 		if err := app.LoadLatestVersion(); err != nil {
 			panic(fmt.Errorf("error loading last version: %w", err))
 		}
-		ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
-
-		// Initialize pinned codes in wasmvm as they are not persisted there
-		if err := app.WasmKeeper.InitializePinnedCodes(ctx); err != nil {
-			panic(fmt.Sprintf("failed initialize pinned codes %s", err))
-		}
 
 		app.CapabilityKeeper.Seal()
 	}
@@ -972,7 +854,7 @@ func New(
 	return app
 }
 
-func (app *App) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtypes.WasmConfig, txCounterStoreKey *storetypes.KVStoreKey) {
+func (app *App) setAnteHandler(txConfig client.TxConfig) {
 	anteHandler, err := NewAnteHandler(
 		HandlerOptions{
 			BaseOptions: authante.HandlerOptions{
@@ -982,14 +864,11 @@ func (app *App) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtypes.Wa
 				FeegrantKeeper:  app.FeeGrantKeeper,
 				SigGasConsumer:  authante.DefaultSigVerificationGasConsumer,
 			},
-			IBCKeeper:             app.IBCKeeper,
-			WasmConfig:            &wasmConfig,
-			WasmKeeper:            &app.WasmKeeper,
-			TXCounterStoreService: runtime.NewKVStoreService(txCounterStoreKey),
-			CircuitKeeper:         &app.CircuitKeeper,
-			FeeMarketKeeper:       app.FeeMarketKeeper,
-			AccountKeeper:         app.AccountKeeper,
-			BankKeeper:            app.BankKeeper,
+			IBCKeeper:       app.IBCKeeper,
+			CircuitKeeper:   &app.CircuitKeeper,
+			FeeMarketKeeper: app.FeeMarketKeeper,
+			AccountKeeper:   app.AccountKeeper,
+			BankKeeper:      app.BankKeeper,
 		},
 	)
 	if err != nil {
