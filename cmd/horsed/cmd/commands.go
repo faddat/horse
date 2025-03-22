@@ -19,6 +19,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/server/api"
+	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -201,4 +203,8 @@ var tempDir = func() string {
 	defer os.RemoveAll(dir)
 
 	return dir
+}
+
+func (app *app.App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+	// Your existing implementation...
 }

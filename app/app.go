@@ -32,14 +32,8 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-<<<<<<< HEAD
-	_ "github.com/MANTRA-Chain/mantrachain/app/params"
-	_ "github.com/MANTRA-Chain/mantrachain/client/docs/statik"
-=======
 	_ "github.com/uwu-shepards/horse/app/params"
-	queries "github.com/uwu-shepards/horse/app/queries"
 	_ "github.com/uwu-shepards/horse/client/docs/statik"
->>>>>>> origin/main
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	dbm "github.com/cosmos/cosmos-db"
@@ -143,9 +137,6 @@ import (
 	feemarketkeeper "github.com/skip-mev/feemarket/x/feemarket/keeper"
 	feemarkettypes "github.com/skip-mev/feemarket/x/feemarket/types"
 	"github.com/spf13/cast"
-	"github.com/uwu-shepards/horse/x/tokenfactory"
-	tokenfactorykeeper "github.com/uwu-shepards/horse/x/tokenfactory/keeper"
-	tokenfactorytypes "github.com/uwu-shepards/horse/x/tokenfactory/types"
 )
 
 const appName = "App"
@@ -460,20 +451,6 @@ func New(
 		appCodec,
 		app.MsgServiceRouter(),
 		app.AccountKeeper,
-	)
-
-	groupConfig := group.DefaultConfig()
-	/*
-		Example of setting group params:
-		groupConfig.MaxMetadataLen = 1000
-	*/
-	app.GroupKeeper = groupkeeper.NewKeeper(
-		keys[group.StoreKey],
-		// runtime.NewKVStoreService(keys[group.StoreKey]),
-		appCodec,
-		app.MsgServiceRouter(),
-		app.AccountKeeper,
-		groupConfig,
 	)
 
 	// get skipUpgradeHeights from the app options
