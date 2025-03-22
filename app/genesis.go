@@ -21,7 +21,7 @@ import (
 // object provided to it during init.
 type GenesisState map[string]json.RawMessage
 
-var FeeDenom = "uom"
+var FeeDenom = "horse"
 
 // NewDefaultGenesisState generates the default state for the application.
 func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {

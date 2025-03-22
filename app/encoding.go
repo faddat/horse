@@ -5,9 +5,9 @@ import (
 
 	"cosmossdk.io/log"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/MANTRA-Chain/mantrachain/app/params"
 	dbm "github.com/cosmos/cosmos-db"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
+	"github.com/uwu-shepards/horse/app/params"
 )
 
 // MakeEncodingConfig creates a new EncodingConfig with all modules registered. For testing only
